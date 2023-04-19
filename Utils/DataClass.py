@@ -67,9 +67,7 @@ class BF3Server:
 
 
 	def __init__(self):
-		self.Players = list()
-		for i in range(self.MaxPlayers):
-			self.Players.append(0)
+		self.Players = [0 for _ in range(self.MaxPlayers)]
 			
 	#Commander
 	def playerJoinCommander(self, pid):
@@ -117,13 +115,7 @@ class BF3Server:
 		return False
 		
 	def getPIDFromMesh(self, mesh):
-		if self.Players[mesh] != 0:
-			return self.Players[mesh]
-		return False
+		return self.Players[mesh] if self.Players[mesh] != 0 else False
 
 	def getPlayers(self):
-		tPlayers = 0
-		for i in range(self.MaxPlayers):
-			if self.Players[i] != 0:
-				tPlayers += 1
-		return tPlayers
+		return sum(self.Players[i] != 0 for i in range(self.MaxPlayers))

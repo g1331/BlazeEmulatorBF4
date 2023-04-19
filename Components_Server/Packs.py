@@ -10,7 +10,7 @@ def grantPacks(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	packList = packet.getVar("PKLS")
 	userID = packet.getVar("UID ")
-	
+
 	reply = BlazeFuncs.BlazePacket("0802","0002",packet.packetID,"1000")
 	reply.writeArray("PIDL")
 	for i in range(len(packList)):
@@ -19,31 +19,31 @@ def grantPacks(self, data_e):
 		reply.writeArray_ValEnd()
 	reply.writeBuildArray("Struct")
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
-	
+
 	name = None
 	for Client in Globals.Clients:
 		if Client.UserID == userID:
 			name = Client.Name
-			
-	if name == None:
+
+	if name is None:
 		return
-	
+
 	#itemsFile = open('Users/'+name+'/items.txt', 'r')
    	#Items = itemsFile.readlines()
 	items = loadMySql(name, "items")
 	itemToWrite = items
 	for x in range(len(packList)):
-		if not (packList[x] in items):
+		if packList[x] not in items:
 			#itemFile.write(packList[x]+"\n")
 			itemToWrite = itemToWrite+packList[x]+"\n"
-			
+
 			battlepackItem = [packList[x], []]
 
 			#battlepackFile = open('Users/'+name+'/battlepacks.txt', 'r')
 			#packStr = battlepackFile.readline()
 			#battlepackFile.close()
 			packStr = loadMySql(name, "battlepacks")
-			
+
 			writeDta = []
 			if len(packStr) <= 2:
 				writeDta = [battlepackItem]
@@ -51,12 +51,12 @@ def grantPacks(self, data_e):
 				battlepacks = json.loads(packStr)
 				battlepacks.append(battlepackItem)
 				writeDta = battlepacks
-			
+
 			#battlepackFile = open('Users/'+name+'/battlepacks.txt', 'w')
 			#battlepackFile.write(json.dumps(writeDta))
 			#battlepackFile.close()
 			writeMySql(name, json.dumps(writeDta), "battlepacks")
-			
+
 	writeMySql(name, itemToWrite, "items")
 	itemToWrite = ""
 	#itemFile.close()
@@ -68,7 +68,7 @@ def ReciveComponent(self,func,data_e):
 		print("[PACKS] grant Packs")
 		grantPacks(self,data_e)
 	else:
-		print("[INV] ERROR! UNKNOWN FUNC "+func)
+		print(f"[INV] ERROR! UNKNOWN FUNC {func}")
 
 def loadMySql(user, field):
 	#Query example: SELECT usersettings FROM `users` WHERE username = 'StoCazzo' 

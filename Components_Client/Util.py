@@ -78,7 +78,7 @@ def PostAuth(self,data_e):
 	#reply.append("c33cc003864cb301010086d8780000bed8780000c2aa64010100c2fcb40000cb0cb40000d29a64000000d25b2503864cb3011b676f7374656c656d657472792e626c617a65332e65612e636f6d0086ebee0000929ce10101009648f400009a9b3401102d47414d452f434f4d4d2f4558504400b2f8c00093d5f2d60cb69bb20000bafbeb010100c2fcb400849c01ce4b390098ea01ce5cf3010b46577065574a3652727000ceb97901b1015eb9caf7d19cb3ddefcb93afaaff818cbbd8e18b9af6ed9bb6b1e8b0a986c6ceb1e2f4d0a9a6a78eb1baea84d3b3ec8d96a4e0c08183868c98b0e0c089e6c6989ab7c2c9e182eed897e2c2d1a3c7ad99b3e9cab1a3d685cd96f0c6b189c3a68d98b8eed091c3a68d96e5dcd59aa5818000cf08f4008b01cf4a6d010844656661756c7400cf6bad011374656c656d657472792d332d636f6d6d6f6e0000d298eb03864cb3010d31302e31302e37382e31353000c2fcb400a78c01ceb9790180013137343830323835302c31302e31302e37382e3135303a383939392c626174746c656669656c642d342d70632c31302c35302c35302c35302c35302c302c300000d72bf003d2dbf00001")
 	#reply.writeInt("UID ", self.GAMEOBJ.PersonaID)
 	#reply.writeEUnion() #END UROP
-	
+
 	reply.writeSStruct("PSS ")
 	reply.writeString("ADRS", "")
 	reply.writeInt("AMAX", 0)
@@ -88,7 +88,7 @@ def PostAuth(self,data_e):
 	reply.writeInt("RPRT", 0)
 	reply.writeInt("TIID", 0)
 	reply.writeEUnion() #END PSS
-	
+
 	reply.writeSStruct("TELE")
 	reply.writeString("ADRS", "gostelemetry.blaze3.ea.com")
 	reply.writeBool("ANON", False)
@@ -106,18 +106,21 @@ def PostAuth(self,data_e):
 	reply.writeString("STIM", "Default")
 	reply.writeString("SVNM", "telemetry-3-common")
 	reply.writeEUnion() #END TELE
-	
+
 	reply.writeSStruct("TICK")
 	reply.writeString("ADRS", "10.10.78.150")
 	reply.writeInt("PORT", 8999)
-	reply.writeString("SKEY", str(self.GAMEOBJ.PersonaID)+",10.10.78.150:8999,battlefield-4-pc,10,50,50,50,50,0,0")
+	reply.writeString(
+		"SKEY",
+		f"{str(self.GAMEOBJ.PersonaID)},10.10.78.150:8999,battlefield-4-pc,10,50,50,50,50,0,0",
+	)
 	reply.writeEUnion() #END TICK
-	
+
 	reply.writeSStruct("UROP")
 	reply.writeInt("TMOP", 0)
 	reply.writeInt("UID ", self.GAMEOBJ.PersonaID)
 	reply.writeEUnion() #END UROP
-	
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
 def UserSettingsLoadAll(self,data_e):
@@ -215,7 +218,7 @@ def ReciveComponent(self,func,data_e):
 		PreAuth(self,data_e)
 	elif func == "0008":
 		print("[UTIL] PostAuth")
-		PostAuth(self,data_e)				
+		PostAuth(self,data_e)
 	elif func == "000A":
 		print("[UTIL] UserSettingsLoad")
 	elif func == "000B":
@@ -246,7 +249,7 @@ def ReciveComponent(self,func,data_e):
 		print("[UTIL] SetUserMode")
 		SetUserMode(self,data_e)
 	else:
-		print("[UTIL] ERROR! UNKNOWN FUNC "+func)
+		print(f"[UTIL] ERROR! UNKNOWN FUNC {func}")
 	
 	
 def loadMySql(user, field):

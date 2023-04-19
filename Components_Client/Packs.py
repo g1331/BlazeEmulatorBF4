@@ -47,7 +47,7 @@ def getPacks(self, data_e):
 	
 def openPack(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
-	
+
 	packID = (int(packet.getVar("PID "))-1)
 
 	#battlepackFile = open('Users/'+self.GAMEOBJ.Name+'/battlepacks.txt', 'r')
@@ -55,24 +55,22 @@ def openPack(self, data_e):
 	#battlepackFile.close()
 	battlepackFile = loadMySql(self.GAMEOBJ.Name, "battlepacks")
 	battlepacks = json.loads(battlepackFile)
-	
-	itemFile = open('Data/items.txt', 'r')
-   	itemDB = itemFile.readlines()
-	itemFile.close()
-	
+
+	with open('Data/items.txt', 'r') as itemFile:
+		itemDB = itemFile.readlines()
 	#itemFile = open('Users/'+self.GAMEOBJ.Name+'/items.txt', 'r')
 	#items = itemFile.readlines()
 	#itemFile.close()
 	items = loadMySql(self.GAMEOBJ.Name, "items")
-	
+
 	#2223 (2224-1) = End of actual item list, the rest is battlepacks
 	packItems = []
-	
+
 	#Select random item amount
 	bpItemAmt = randint(2,5)
 	for i in range(bpItemAmt):
 		#XP Boosts
-		if(i < bpItemAmt):
+		if (i < bpItemAmt):
 			xpChance = randint(1,100)
 			if(xpChance >= 95):
 				packItems.append("ulte_boost_200");
@@ -82,83 +80,83 @@ def openPack(self, data_e):
 				packItems.append("ulte_boost_50");
 			elif(xpChance >= 75):
 				packItems.append("ulte_boost_25");
-				
-			if(xpChance >= 75):
-				bpItemAmt = bpItemAmt-1 #Take one item from the list.
+
+			if (xpChance >= 75):
+				bpItemAmt -= 1
 				continue;
-	
+
 		# Check if item limit reached
 		if (len(items) >= 2223):
 			break
-		
+
 		#Add always new items
 		itemID = None
-		while (itemID == None):
+		while itemID is None:
 			selectedItem = itemDB[randint(0,2223)].strip()
-			if not (selectedItem in items):
+			if selectedItem not in items:
 				itemID = selectedItem
-			
+
 		packItems.append(itemID)
-		
-		if not (itemID in items):
+
+		if itemID not in items:
 			#itemFile.write(itemID+"\n")
 			items = items+itemID+"\n"
-	
+
 	writeMySql(self.GAMEOBJ.Name, items, "items")
 	#itemFile.close()
-	
+
 	battlepacks[packID][1] = packItems;
-	
+
 	#battlepackFile = open('Users/'+self.GAMEOBJ.Name+'/battlepacks.txt', 'w')
 	#battlepackFile.write(json.dumps(battlepacks))
 	#battlepackFile.close()
 	writeMySql(self.GAMEOBJ.Name, json.dumps(battlepacks), "battlepacks")
-	
-	
+
+
 	#consumeableFile = open('Users/'+self.GAMEOBJ.Name+'/consumables.txt', 'r')
 	#consumeables = json.loads(consumeableFile.readline())
 	#consumeableFile.close()
 	consumeableFile = loadMySql(self.GAMEOBJ.Name, "consumables")
 	consumeables = json.loads(consumeableFile)
-	
-	for x in range(len(packItems)):
-		if(packItems[x] == "ulte_boost_25"):
-			consumeables[0][1] = consumeables[0][1] + 1
-		elif(packItems[x] == "ulte_boost_50"):
-			consumeables[1][1] = consumeables[1][1] + 1
-		elif(packItems[x] == "ulte_boost_100"): 
+
+	for packItem in packItems:
+		if packItem == "ulte_boost_100":
 			consumeables[2][1] = consumeables[2][1] + 1
-		elif(packItems[x] == "ulte_boost_200"):
+		elif packItem == "ulte_boost_200":
 			consumeables[3][1] = consumeables[3][1] + 1
-		
-	
+
+
+		elif packItem == "ulte_boost_25":
+			consumeables[0][1] = consumeables[0][1] + 1
+		elif packItem == "ulte_boost_50":
+			consumeables[1][1] = consumeables[1][1] + 1
 	#consumeableFile = open('Users/'+self.GAMEOBJ.Name+'/consumables.txt', 'w')
 	#consumeableFile.write(json.dumps(consumeables))
 	#consumeableFile.close()
 	writeMySql(self.GAMEOBJ.Name, json.dumps(consumeables), "consumables")
-	
-	
+
+
 	reply = BlazeFuncs.BlazePacket("0802","0004",packet.packetID,"1000")
 	reply.writeArray("ITLI")
-	for x in range(len(packItems)):
-		reply.writeArray_String(packItems[x])
+	for packItem_ in packItems:
+		reply.writeArray_String(packItem_)
 	reply.writeBuildArray("String")
-	
+
 	reply.writeInt("PID ", (packID+1))
 	reply.writeString("PKEY", battlepacks[packID][0])
 	reply.writeInt("SCAT", 3)
 	reply.writeInt("TGEN", int(time.time()))
 	reply.writeInt("TVAL", int(time.time()))
 	reply.writeInt("UID ", self.GAMEOBJ.UserID)
-	
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
-	
+
 	reply = BlazeFuncs.BlazePacket("0802","000a","0000","2000")
 	reply.writeArray("ITLI")
-	for x in range(len(packItems)):
-		reply.writeArray_String(packItems[x])
+	for packItem__ in packItems:
+		reply.writeArray_String(packItem__)
 	reply.writeBuildArray("String")
-		
+
 	reply.writeInt("PID ", (packID+1))
 	reply.writeString("PKEY", battlepacks[packID][0])
 	reply.writeInt("SCAT", 3)
@@ -168,7 +166,7 @@ def openPack(self, data_e):
 	pack1, pack2 = reply.build()
 	self.transport.getHandle().sendall(pack1.decode('Hex'))
 	self.transport.getHandle().sendall(pack2.decode('Hex'))
-	
+
 	if self.GAMEOBJ.CurServer != None:
 		self.GAMEOBJ.CurServer.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
 		self.GAMEOBJ.CurServer.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
@@ -182,7 +180,7 @@ def ReciveComponent(self,func,data_e):
 		print("[PACKS CLIENT] Open Pack")
 		openPack(self,data_e)
 	else:
-		print("[INV CLIENT] ERROR! UNKNOWN FUNC "+func)
+		print(f"[INV CLIENT] ERROR! UNKNOWN FUNC {func}")
 		
 def loadMySql(user, field):
 	#Query example: SELECT usersettings FROM `users` WHERE username = 'StoCazzo' 

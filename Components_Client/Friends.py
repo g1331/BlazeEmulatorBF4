@@ -83,4 +83,4 @@ def ReciveComponent(self,func,data_e):
 		print("[FRNDS] 0007")
 		Zero7(self, data_e)
 	else:
-		print("[FRNDS] ERROR! UNKNOWN FUNC "+func)
+		print(f"[FRNDS] ERROR! UNKNOWN FUNC {func}")

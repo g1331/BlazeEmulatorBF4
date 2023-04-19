@@ -124,35 +124,33 @@ def listUserEntitlements2(self, data_e):
 
 	reply = BlazeFuncs.BlazePacket("0001","001D",packet.packetID,"1000")
 	if etag == "":
-		file = open('Data/global_entitlements.json', 'r')
-	
-		jsonStr = file.read()
-		jsonObj = json.loads(jsonStr)
-	
-		gnls = packet.getVar("GNLS")
-		reply.writeArray("NLST")
+		with open('Data/global_entitlements.json', 'r') as file:
+			jsonStr = file.read()
+			jsonObj = json.loads(jsonStr)
 
-		for i in range(len(jsonObj)):
-			reply.writeArray_TString("DEVI", "")
-			reply.writeArray_TString("GDAY", "")
-			reply.writeArray_TString("GNAM", jsonObj[i]["GroupName"])
-			reply.writeArray_TInt("ID  ", 1)
-			reply.writeArray_TInt("ISCO", 0)
-			reply.writeArray_TInt("PID ", 0)
-			reply.writeArray_TString("PJID", "")
-			reply.writeArray_TInt("PRCA", 2)
-			reply.writeArray_TString("PRID", jsonObj[i]["PRID"])
-			reply.writeArray_TInt("STAT", 1)
-			reply.writeArray_TInt("STRC", 0)
-			reply.writeArray_TString("TAG ", jsonObj[i]["TAG"])
-			reply.writeArray_TString("TDAY", "")
-			reply.writeArray_TInt("TYPE", jsonObj[i]["Type"])
-			reply.writeArray_TInt("UCNT", 0)
-			reply.writeArray_TInt("VER ", 0)
-			reply.writeArray_ValEnd()
-		reply.writeBuildArray("Struct")
-		
-		file.close()
+			gnls = packet.getVar("GNLS")
+			reply.writeArray("NLST")
+
+			for i in range(len(jsonObj)):
+				reply.writeArray_TString("DEVI", "")
+				reply.writeArray_TString("GDAY", "")
+				reply.writeArray_TString("GNAM", jsonObj[i]["GroupName"])
+				reply.writeArray_TInt("ID  ", 1)
+				reply.writeArray_TInt("ISCO", 0)
+				reply.writeArray_TInt("PID ", 0)
+				reply.writeArray_TString("PJID", "")
+				reply.writeArray_TInt("PRCA", 2)
+				reply.writeArray_TString("PRID", jsonObj[i]["PRID"])
+				reply.writeArray_TInt("STAT", 1)
+				reply.writeArray_TInt("STRC", 0)
+				reply.writeArray_TString("TAG ", jsonObj[i]["TAG"])
+				reply.writeArray_TString("TDAY", "")
+				reply.writeArray_TInt("TYPE", jsonObj[i]["Type"])
+				reply.writeArray_TInt("UCNT", 0)
+				reply.writeArray_TInt("VER ", 0)
+				reply.writeArray_ValEnd()
+			reply.writeBuildArray("Struct")
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 	
 def UNKNOWN(self, data_e):
@@ -268,4 +266,4 @@ def ReciveComponent(self,func,data_e):
 		print("[AUTH] UNKNOWN")
 		UNKNOWN(self,data_e)
 	else:
-		print("[AUTH] ERROR! UNKNOWN FUNC "+func)
+		print(f"[AUTH] ERROR! UNKNOWN FUNC {func}")

@@ -64,15 +64,15 @@ class BlazeDecoder:
 		
 	def __decodeInt(self,value):
 		value = str(value)
-		if value[:2] == "00":
+		if value.startswith("00"):
 			value = value[::2]
 		value = list(value)
-		if(value[0] == "x" or value[0] == "X"):
+		if value[0] in ["x", "X"]:
 			value[0] = "0"
 			value = ''.join(value)	
 			return int(value,16)*-1
 		value = ''.join(value)
-		x = self.__splitCount(str(value).upper(), 2)
+		x = self.__splitCount(value.upper(), 2)
 		if (len(x) == 0):
 			return 0
 		result = int(x[0],16) & 0x3F
@@ -87,9 +87,7 @@ class BlazeDecoder:
 	def readInt(self,start,data):
 		sVal = int(start+2)
 		tmpStr = data[start:sVal]
-		if int(tmpStr, 16) < 0x80:
-			return self.__decodeInt(tmpStr)
-		else:
+		if int(tmpStr, 16) >= 0x80:
 			sVal += 2
 			start += 2
 			while(int(data[start:sVal], 16) > 0x80):
@@ -97,14 +95,12 @@ class BlazeDecoder:
 				start += 2
 				sVal += 2
 			tmpStr += data[start:sVal]
-			return self.__decodeInt(tmpStr)
+		return self.__decodeInt(tmpStr)
 
 	def readArrayInt(self,start,data):
 		sVal = int(start+2)
 		tmpStr = data[start:sVal]
-		if int(tmpStr, 16) < 0x80:
-			return (self.__decodeInt(tmpStr), len(tmpStr))
-		else:
+		if int(tmpStr, 16) >= 0x80:
 			sVal += 2
 			start += 2
 			while(int(data[start:sVal], 16) > 0x80):
@@ -112,7 +108,7 @@ class BlazeDecoder:
 				start += 2
 				sVal += 2
 			tmpStr += data[start:sVal]
-			return (self.__decodeInt(tmpStr), len(tmpStr))
+		return (self.__decodeInt(tmpStr), len(tmpStr))
 
 	def readString(self,start,data):
 		strLen = start+(int(data[start:start+2], 16)*2)
@@ -147,45 +143,40 @@ class BlazeDecoder:
 		self.__bufferSplice(start+4)
 		amount = int(self.__bufferSplice(2), 16)
 		#print "MAP AMOUNT " + str(amount)
-		for i in range(amount):
+		for _ in range(amount):
 			nameLen = int(self.__bufferSplice(2), 16)*2
 			name = self.__bufferSplice(nameLen)
 			if len(name)%2 == 1:
 				name+="0"
 			self.mapDName.append(name[:-2].decode('Hex'))
-			
+
 			#dataLen = int(self.__bufferSplice(2), 16)*2
 			dataLen = self.__bufferSplice(2)
 			if self.packetBuffer[:1] == "0" and self.packetBuffer[:2] != "00":
 				multi = self.__bufferSplice(2)
 				dataLen = dataLen+multi
 				dataLen = self.__decodeInt(dataLen)
-				
-			if type(dataLen) is str:
-				dataLen = int(dataLen, 16)*2
-			else:
-				dataLen = dataLen*2
+
+			dataLen = int(dataLen, 16)*2 if type(dataLen) is str else dataLen*2
 			data = self.__bufferSplice(dataLen)
 			if len(data)%2 == 1:
 				data+="0"
 			self.mapDContent.append(data[:-2].decode('Hex'))
-			#print name[:-2].decode('Hex') + " = " + data[:-2].decode('Hex')
-			
 		res1 = list(self.mapDName)
 		res2 = list(self.mapDContent)
-		
-		for i in range(amount):
+
+		for _ in range(amount):
 			self.mapDName.pop()
 			self.mapDContent.pop()
-		
+
 		self.packetBuffer = self.fullPacket
 		return (res1, res2)
 
 	def readStatsMap(self, start, data):
 		self.__bufferSplice(start+4)
 		amount = int(self.__bufferSplice(2), 16)
-		for i in range(amount):
-			data = list()
+		for _ in range(amount):
+			data = []
 			pid, length = self.readArrayInt(0, self.packetBuffer)
 			self.__bufferSplice(length)
 			self.mapDName.append(pid)
@@ -193,13 +184,13 @@ class BlazeDecoder:
 
 			values, length = self.readArrayInt(0, self.packetBuffer)
 			self.__bufferSplice(length)
-			for i in range(values):
+			for _ in range(values):
 				vals = ["", 0]
 				nameLen = int(self.__bufferSplice(2), 16)*2
 				name = self.__bufferSplice(nameLen)
 				if len(name)%2 == 1:
 					name+="0"
-				
+
 				vals[0] = name[:-2].decode('hex')
 				vals[1] = struct.unpack('!f', self.__bufferSplice(8).decode('hex'))[0]
 
@@ -207,14 +198,14 @@ class BlazeDecoder:
 			self.__bufferSplice(2)
 
 			self.mapDContent.append(data)
-			
+
 		res1 = list(self.mapDName)
 		res2 = list(self.mapDContent)
-		
-		for i in range(amount):
+
+		for _ in range(amount):
 			self.mapDName.pop()
 			self.mapDContent.pop()
-		
+
 		self.packetBuffer = self.fullPacket
 		return (res1, res2)
 
@@ -294,7 +285,7 @@ class BlazeDecoder:
 		tag = self.makeBlazeTag(tag)
 		#Todo Splice packetBuffer
 		data = self.packetBuffer
-		for x in range(0,value-1):
+		for _ in range(value-1):
 			startVal = data.find(tag)
 			data = data[startVal+6:]
 
@@ -333,7 +324,7 @@ class BlazePacket:
 		
 	def __packetSize(self):
 		packetStringBUFF = ""
-		packetSizeTEMP = int(len(self.packetBuffer)/2)
+		packetSizeTEMP = len(self.packetBuffer) // 2
 		if packetSizeTEMP < 16:
 			packetStringBUFF = "000"
 		elif packetSizeTEMP < 255:
@@ -357,16 +348,16 @@ class BlazePacket:
 				currshift = currshift >> 7
 				result.append(curbyte)
 			result.append(currshift)
-		for i in range(0, len(result)):
+		for i in range(len(result)):
 			if len(hex(result[i])[2:]) == 1:
-				result[i] = "0"+hex(result[i])[2:]
+				result[i] = f"0{hex(result[i])[2:]}"
 			else:
 				result[i] = hex(result[i])[2:]
 		while len(result) < 4:
 			result[:0] = "0"
 			result[0] = "00"
-		
-		for i in range(0, len(result)):
+
+		for _ in range(len(result)):
 			if (result[0] == "00" and len(result) != 1):
 				result.pop(0)
 		result = "".join(result)
@@ -413,9 +404,9 @@ class BlazePacket:
 	def writeString(self,tag,string):
 		BUFF = self.makeBlazeTag(tag)
 		BUFF += "01"
-			
-		BUFF += self.makeInt(int(len(string))+1)
-			
+
+		BUFF += self.makeInt(len(string) + 1)
+
 		BUFF += string.encode('Hex')
 		BUFF += "00"
 
@@ -442,11 +433,11 @@ class BlazePacket:
 		BUFF += self.makeBlazeTag(tag)
 		BUFF += "01"
 
-		packetSizeTEMP = int(len(string))
-		
+		packetSizeTEMP = len(string)
+
 		if packetSizeTEMP < 15:
 			BUFF += "0"
-		
+
 		BUFF += hex(len(string) + 1).split('x')[1]
 		BUFF += string.encode('Hex')
 		BUFF += "00"
@@ -454,11 +445,11 @@ class BlazePacket:
 
 	def writeArray_String(self,string):
 		BUFF = ""
-		packetSizeTEMP = int(len(string))
-		
+		packetSizeTEMP = len(string)
+
 		if packetSizeTEMP < 15:
 			BUFF += "0"
-		
+
 		BUFF += hex(len(string) + 1).split('x')[1]
 		BUFF += string.encode('Hex')
 		BUFF += "00"
@@ -466,12 +457,7 @@ class BlazePacket:
 		self.tarrayVals += 1
 		
 	def writeArray_Bool(self,bool):
-		BUFF = ""
-		if(bool):
-			BUFF += "01"
-		else:
-			BUFF += "00"
-		
+		BUFF = "" + ("01" if bool else "00")
 		self.tarrayString += BUFF
 		self.tarrayVals += 1
 		
@@ -497,7 +483,7 @@ class BlazePacket:
 			BUFF += "0403"
 		elif tpe == "String":
 			BUFF += "0401"
-		elif (tpe == "Bool" or tpe == "Int"):
+		elif tpe in ["Bool", "Int"]:
 			BUFF += "0400"
 		elif (tpe == "IntList"):
 			BUFF += "07"
@@ -534,21 +520,21 @@ class BlazePacket:
 			data = self.tmapDConent[i]
 			tmp = ""
 			#print "BUILD [" + name + " = " + data + "] LEN("+str(len(name)+1)+","+str(len(data)+1)+") HX("+str(self.__encodeInt(len(name) + 1))+","+str(self.__encodeInt(len(data) + 1))+")"
-			
+
 			tmp += self.__encodeInt(len(name) + 1)
 			tmp += name.encode('Hex')
 			tmp += "00"
-			
+
 			tmp += self.__encodeInt(len(data) + 1)
 			tmp += data.encode('Hex')
 			tmp += "00"
 			BUFF += tmp
 			#print tmp
 			#print "========================================"
-		
+
 		self.append(BUFF)
-		
-		for i in range(vars):
+
+		for _ in range(vars):
 			self.tmapDName.pop()
 			self.tmapDConent.pop()
 		
@@ -581,17 +567,17 @@ class BlazePacket:
 	def build(self):
 		if self.packetType == "2000":
 			return (self.__packetSize()+self.packetHeader, self.packetBuffer)
-	
+
 		if len(self.packetBuffer) > 0xFFFF:
 			size = self.__packetSize()
 			size1 = size[-4:]
 			size2 = size[:-4]
 			if (len(size2) == 1):
-				size2 = "000"+size2
+				size2 = f"000{size2}"
 			elif (len(size2) == 2):
-				size2 = "00"+size2
+				size2 = f"00{size2}"
 			elif len(size2) == 3:
-				size2 = "0"+size2
+				size2 = f"0{size2}"
 			return size1+self.packetHeader+size2+self.packetBuffer
-		
+
 		return self.__packetSize()+self.packetHeader+self.packetBuffer

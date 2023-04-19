@@ -122,8 +122,8 @@ def LoginPersona(self,data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	personaName = packet.getVar("PNAM")
 	self.GAMEOBJ.Name = personaName
-	print("Trying to login to persona (" + personaName + ")")
-	
+	print(f"Trying to login to persona ({personaName})")
+
 	reply = BlazeFuncs.BlazePacket("0001","006e",packet.packetID,"1000")
 	reply.writeInt("BUID", self.GAMEOBJ.PersonaID)
 	reply.writeBool("FRST", False)
@@ -144,10 +144,10 @@ def LoginPersona(self,data_e):
 	#STAS 6 = Banned
 	reply.writeInt("XREF", 0)
 	reply.writeInt("XTYP", 0)
-	
+
 	##todo writeestruct
 	reply.writeEUnion()
-	
+
 	reply.writeInt("UID ",self.GAMEOBJ.UserID)
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
@@ -188,35 +188,33 @@ def listUserEntitlements2(self, data_e):
 
 	reply = BlazeFuncs.BlazePacket("0001","001D",packet.packetID,"1000")
 	if etag == "":
-		file = open('Data/global_entitlements.json', 'r')
-	
-		jsonStr = file.read()
-		jsonObj = json.loads(jsonStr)
-	
-		gnls = packet.getVar("GNLS")
-		reply.writeArray("NLST")
+		with open('Data/global_entitlements.json', 'r') as file:
+			jsonStr = file.read()
+			jsonObj = json.loads(jsonStr)
 
-		for i in range(len(jsonObj)):
-			reply.writeArray_TString("DEVI", "")
-			reply.writeArray_TString("GDAY", "")
-			reply.writeArray_TString("GNAM", jsonObj[i]["GroupName"])
-			reply.writeArray_TInt("ID  ", 1)
-			reply.writeArray_TInt("ISCO", 0)
-			reply.writeArray_TInt("PID ", 0)
-			reply.writeArray_TString("PJID", "")
-			reply.writeArray_TInt("PRCA", 2)
-			reply.writeArray_TString("PRID", jsonObj[i]["PRID"])
-			reply.writeArray_TInt("STAT", 1)
-			reply.writeArray_TInt("STRC", 0)
-			reply.writeArray_TString("TAG ", jsonObj[i]["TAG"])
-			reply.writeArray_TString("TDAY", "")
-			reply.writeArray_TInt("TYPE", jsonObj[i]["Type"])
-			reply.writeArray_TInt("UCNT", 0)
-			reply.writeArray_TInt("VER ", 0)
-			reply.writeArray_ValEnd()
-		reply.writeBuildArray("Struct")
-		
-		file.close()
+			gnls = packet.getVar("GNLS")
+			reply.writeArray("NLST")
+
+			for i in range(len(jsonObj)):
+				reply.writeArray_TString("DEVI", "")
+				reply.writeArray_TString("GDAY", "")
+				reply.writeArray_TString("GNAM", jsonObj[i]["GroupName"])
+				reply.writeArray_TInt("ID  ", 1)
+				reply.writeArray_TInt("ISCO", 0)
+				reply.writeArray_TInt("PID ", 0)
+				reply.writeArray_TString("PJID", "")
+				reply.writeArray_TInt("PRCA", 2)
+				reply.writeArray_TString("PRID", jsonObj[i]["PRID"])
+				reply.writeArray_TInt("STAT", 1)
+				reply.writeArray_TInt("STRC", 0)
+				reply.writeArray_TString("TAG ", jsonObj[i]["TAG"])
+				reply.writeArray_TString("TDAY", "")
+				reply.writeArray_TInt("TYPE", jsonObj[i]["Type"])
+				reply.writeArray_TInt("UCNT", 0)
+				reply.writeArray_TInt("VER ", 0)
+				reply.writeArray_ValEnd()
+			reply.writeBuildArray("Struct")
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
 def ReciveComponent(self,func,data_e):
@@ -326,16 +324,18 @@ def ReciveComponent(self,func,data_e):
 	elif func == "00E6":
 		print("[AUTH] CreateWalUserSession")
 	else:
-		print("[AUTH] ERROR! UNKNOWN FUNC "+func)
+		print(f"[AUTH] ERROR! UNKNOWN FUNC {func}")
 		
 def srvLogin(mail, password):
 	#print('[SQLite] Checking server login, mail: ' + mail + ' password: ' + password)
-	
+
 	db = sqlite3.connect(Globals.dbDatabase) 
-	
+
 	cursor = db.cursor()
-	cursor.execute ("SELECT * FROM `servers` WHERE email = '" + str(mail) + "' OR password = '" + str(hashlib.md5(password).hexdigest()) + "'")
-	
+	cursor.execute(
+		f"SELECT * FROM `servers` WHERE email = '{str(mail)}' OR password = '{hashlib.md5(password).hexdigest()}'"
+	)
+
 	if not cursor.rowcount:
 		print('[SQLite] Server Login Error! Username and password not found!')
 		return False

@@ -15,7 +15,7 @@ from Utils import Globals as Globals
 class Simple(resource.Resource):
 	isLeaf = True
 	def render_GET(self, request):
-	
+
 		urlPath = request.path.split('/')
 		#print request
 		#print request.args
@@ -23,39 +23,35 @@ class Simple(resource.Resource):
 		#print request.content.getvalue()
 		#print request.getAllHeaders()
 		#print "===================="
-		
-		
+
+
 		#print(str(request.path))
-		
+
 		cwd = os.getcwd()
 		path = cwd+"\\Data\\"
-		
-		if(urlPath[1] == "api"):
-			if(urlPath[4] == "battledash"):
-				if(urlPath[6] == "widgetdata"):
-					return open(path+'battledash.json').read()
-			if(urlPath[4] == "persona"):
-				if(urlPath[7] == "ingame_metadata"):
-					return '{"clubRank": "", "personaId": "'+urlPath[6]+'", "emblemUrl": "", "clubName": "", "countryCode": "US"}'
-		elif(urlPath[1] == "bf4"):
-			if(urlPath[2] == "battledash"):
+
+		if (urlPath[1] == "api"):
+			if (urlPath[4] == "battledash") and (urlPath[6] == "widgetdata"):
+				return open(f'{path}battledash.json').read()
+			if (urlPath[4] == "persona") and (urlPath[7] == "ingame_metadata"):
+				return '{"clubRank": "", "personaId": "'+urlPath[6]+'", "emblemUrl": "", "clubName": "", "countryCode": "US"}'
+		elif (urlPath[1] == "bf4"):
+			if (urlPath[2] == "battledash"):
 				request.setHeader("Access-Control-Allow-Origin", "*")
 				#request.setHeader("Origin", "http://battlelog.battlefield.com")
-				return open(path+'battledash.html').read()
+				return open(f'{path}battledash.html').read()
 
-		serverXML = open(path+'server.xml')
-		
+		serverXML = open(f'{path}server.xml')
+
 		request.setHeader("content-type", "text/xml")
 		return serverXML.read()
 		
 		
 	def getFreePort(self):
 		port = randint(50000,58000)
-		for auth in Globals.authClients:
-			if auth.Port == port:
-				return getFreePort()
-				
-		return port
+		return next(
+			(getFreePort() for auth in Globals.authClients if auth.Port == port), port
+		)
 		
 	def render_POST(self, request):
 		urlPath = request.path.split('/')
@@ -137,19 +133,13 @@ class Simple(resource.Resource):
 		
 	def checkUserMySql(self, username, password):
 		db = sqlite3.connect(Globals.dbDatabase) 
-		
+
 		cursor = db.cursor()
 		password_md5=hashlib.md5(password).hexdigest()
 		#print(username+password_md5)
-		
-		cursor.execute ("SELECT * FROM `users` WHERE username = '" + username + "' OR password = '" + password_md5 + "'")
-		
-		if not cursor.rowcount:
-			return False
-		else:
-			return True
 
+		cursor.execute(
+			f"SELECT * FROM `users` WHERE username = '{username}' OR password = '{password_md5}'"
+		)
 
-			
-		cursor.close()
-		db.close()
+		return bool(cursor.rowcount)

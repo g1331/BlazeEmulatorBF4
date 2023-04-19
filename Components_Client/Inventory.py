@@ -9,21 +9,21 @@ import Utils.Globals as Globals
 def getItems(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	reply = BlazeFuncs.BlazePacket("0803","0001",packet.packetID,"1000")
-	
-	cflg = int(packet.getVar('CFLG'))	
+
+	cflg = int(packet.getVar('CFLG'))
 	rtype = int(packet.getVar('RTYP'))
-	
-	while (self.GAMEOBJ.Name == None):
+
+	while self.GAMEOBJ.Name is None:
 		return
-	
+
 	reply.writeSStruct("INVT")
-	if(cflg == 2):
+	if (cflg == 2):
 		#consumeableFile = open('Users/'+self.GAMEOBJ.Name+'/consumables.txt', 'r')
 		#consumeables = json.loads(consumeableFile.readline())
 		#consumeableFile.close()
 		consumeableFile = loadMySql(self.GAMEOBJ.Name, "consumables")
 		consumeables = json.loads(consumeableFile)
-	
+
 		reply.writeArray("CLST")
 		for i in range(len(consumeables)):
 			reply.writeArray_TInt("ACTT", self.GAMEOBJ.UserID)
@@ -31,24 +31,22 @@ def getItems(self, data_e):
 			reply.writeArray_TInt("DURA", consumeables[i][2])
 			reply.writeArray_TInt("QANT", consumeables[i][1])
 			reply.writeArray_ValEnd()
-		
+
 		reply.writeBuildArray("Struct")
 	else:
 		#itemFile = open('Users/'+self.GAMEOBJ.Name+'/items.txt', 'r')
 		#items = itemFile.readlines()
 		#itemFile.close()
 		items = loadMySql(self.GAMEOBJ.Name, "items").splitlines()
-		
-		
+
+
 		reply.writeArray("ULST")
 		for i in range(len(items)):
-			val = str(items[i])
-			if val == "":
-				continue
-			reply.writeArray_String(val.strip())
-			
+			if val := str(items[i]):
+				reply.writeArray_String(val.strip())
+
 		reply.writeBuildArray("String")
-	
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 	
 def useConsumeable(self, data_e):
@@ -112,19 +110,17 @@ def useConsumeable(self, data_e):
 def getTemplate(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	reply = BlazeFuncs.BlazePacket("0803","0006",packet.packetID,"1000")
-	
-	reply.writeArray("ILST")
-	
-	itemFile = open('Data/items.txt', 'r')
-   	items = itemFile.readlines()
-	itemFile.close()
 
+	reply.writeArray("ILST")
+
+	with open('Data/items.txt', 'r') as itemFile:
+		items = itemFile.readlines()
 	for i in range(len(items)):
 		val = str(items[i])
 		reply.writeArray_String(val)
-		
+
 	reply.writeBuildArray("String")
-	
+
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
 def ReciveComponent(self,func,data_e):
@@ -139,7 +135,7 @@ def ReciveComponent(self,func,data_e):
 		print("[INV CLIENT] getTemplate")
 		getTemplate(self,data_e)
 	else:
-		print("[INV CLIENT] ERROR! UNKNOWN FUNC "+func)
+		print(f"[INV CLIENT] ERROR! UNKNOWN FUNC {func}")
 		getItems(self,data_e)
 		
 def loadMySql(user, field):

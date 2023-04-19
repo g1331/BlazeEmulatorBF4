@@ -43,10 +43,10 @@ def UpdateMeshConnection(self,data_e):
 
 	STAT = packet.getVar("STAT")
 	GID = packet.getVar("GID ")
-	
+
 	reply = BlazeFuncs.BlazePacket("0004","001d",packet.packetID,"1000")
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
-	
+
 	#STAT = 2
 	if STAT == 2:
 		reply = BlazeFuncs.BlazePacket("0004","0074","0000","2000")
@@ -56,21 +56,19 @@ def UpdateMeshConnection(self,data_e):
 		pack1, pack2 = reply.build()
 		self.transport.getHandle().sendall(pack1.decode('Hex'))
 		self.transport.getHandle().sendall(pack2.decode('Hex'))
-	
+
 		reply = BlazeFuncs.BlazePacket("0004","001e","0000","2000")
 		reply.writeInt("GID ", GID)
 		reply.writeInt("PID ", self.GAMEOBJ.PersonaID)
-		pack1, pack2 = reply.build()
-		self.transport.getHandle().sendall(pack1.decode('Hex'))
-		self.transport.getHandle().sendall(pack2.decode('Hex'))
 	else:
 		reply = BlazeFuncs.BlazePacket("0004","0028","0000","2000")
 		reply.writeInt("GID ", GID)
 		reply.writeInt("PID ", self.GAMEOBJ.PersonaID)
 		reply.writeInt("REAS", 1)
-		pack1, pack2 = reply.build()
-		self.transport.getHandle().sendall(pack1.decode('Hex'))
-		self.transport.getHandle().sendall(pack2.decode('Hex'))
+
+	pack1, pack2 = reply.build()
+	self.transport.getHandle().sendall(pack1.decode('Hex'))
+	self.transport.getHandle().sendall(pack2.decode('Hex'))
 
 def JoinGame(self,data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
@@ -79,26 +77,21 @@ def JoinGame(self,data_e):
 	wtf = int(packet.getVarValue("ID  ", 2))
 
 	serverOBJ = None
-	ntop = 1
-	gtype = "frostbite_multiplayer"
-	pres = 1
-	pingsite = "ams"
-	
 	for Server in Globals.Servers:
 		if Server.GameID == GID and Server.IsUp == True:
 			serverOBJ = Server
-			
-	if serverOBJ == None:
+
+	if serverOBJ is None:
 		self.transport.loseConnection()
 	else:
 		self.GAMEOBJ.CurServer = serverOBJ
-	
+
 		if(slotType == 2):
 			self.GAMEOBJ.Type = "Spectator"
 			slot = serverOBJ.playerJoinSpectator(self.GAMEOBJ.PersonaID)+1
 		else:
 			slot = serverOBJ.playerJoin(self.GAMEOBJ.PersonaID)+1
-		
+
 		reply = BlazeFuncs.BlazePacket("7802","0002","0000","2000")
 		reply.writeSStruct("DATA")
 		reply.append("864932067f") #ADDR
@@ -124,18 +117,18 @@ def JoinGame(self,data_e):
 		pack1, pack2 = reply.build()
 		serverOBJ.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
 		serverOBJ.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
-		
+
 		reply = BlazeFuncs.BlazePacket("7802","0005","0000","2000")
 		reply.writeInt("FLGS", 3)
 		reply.writeInt("ID  ", self.GAMEOBJ.PersonaID)
 		pack1, pack2 = reply.build()
 		serverOBJ.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
 		serverOBJ.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
-		
-		
+
+
 		reply = BlazeFuncs.BlazePacket("0004","0015","0000","2000")
 		reply.writeInt("GID ", GID)
-			
+
 		reply.writeSStruct("PDAT")
 		reply.writeInt("CONG", self.GAMEOBJ.UserID)
 		reply.writeInt("CSID", slot)
@@ -147,23 +140,23 @@ def JoinGame(self,data_e):
 		reply.writeMapData("premium", "false")
 		reply.writeBuildMap()
 		reply.writeInt("PID ", self.GAMEOBJ.PersonaID)
-			
+
 		#### PNET (Union: 2)
 		reply.append("c2e9740602")
-			
+
 		reply.writeSStruct("VALU")
 		reply.writeSStruct("EXIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.EXTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.EXTPORT)
 		reply.writeEUnion() #END EXIP
-			
+
 		reply.writeSStruct("INIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.INTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.INTPORT)
 		reply.writeEUnion() #END INIP
-			
+
 		reply.writeEUnion() #END VALU
-		
+
 		reply.writeString("ROLE", "soldier")
 		reply.writeInt("SID ", slot)
 		reply.writeInt("SLOT", slotType)
@@ -179,7 +172,7 @@ def JoinGame(self,data_e):
 		reply.writeInt("GID ", GID)
 		reply.writeInt("JGS ", 0)
 		self.transport.getHandle().sendall(reply.build().decode('Hex'))
-		
+
 		reply = BlazeFuncs.BlazePacket("0004","0047",packet.packetID,"1000")
 		reply.writeInt("GID ", GID)
 		reply.writeInt("PHID", serverOBJ.PersonaID)
@@ -235,7 +228,7 @@ def JoinGame(self,data_e):
 		reply.writeIntArray_Int(serverOBJ.MaxSpectat)
 		reply.writeIntArray_Int(0)
 		reply.writeBuildIntArray()
-		
+
 		reply.writeInt("GID ", GID)
 		reply.writeInt("GMRG", serverOBJ.GameRegis)
 		reply.writeString("GNAM", serverOBJ.GameName)
@@ -243,8 +236,9 @@ def JoinGame(self,data_e):
 		reply.writeInt("GSET", serverOBJ.GameSet)
 		reply.writeInt("GSID", 1337)
 		reply.writeInt("GSTA", serverOBJ.GameState)
+		gtype = "frostbite_multiplayer"
 		reply.writeString("GTYP", gtype)
-			
+
 		####
 		reply.writeSArray("HNET")
 		##Struct in array
@@ -254,24 +248,25 @@ def JoinGame(self,data_e):
 		reply.writeInt("IP  ", serverOBJ.EXTIP)
 		reply.writeInt("PORT", serverOBJ.EXTPORT)
 		reply.writeEUnion() #END EXIP
-			
+
 		reply.writeSStruct("INIP")
 		reply.writeInt("IP  ", serverOBJ.INTIP)
 		reply.writeInt("PORT", serverOBJ.EXTPORT)
 		reply.writeEUnion() #END INIP
-			
+
 		reply.writeEUnion() #END HNET
 		##Struct array end
-			
+
 		reply.writeInt("HSES", 13666)
 		reply.writeBool("IGNO", False)
 		#reply.append("b63870008001")
 		reply.writeInt("MCAP", 70)
 		reply.writeInt("MNCP", 1)
-		
+
 		reply.writeBool("NRES", True)
+		ntop = 1
 		reply.writeInt("NTOP", ntop)
-			
+
 		reply.writeString("PGID", serverOBJ.PGID)
 
 		reply.writeSStruct("PHST")
@@ -279,49 +274,52 @@ def JoinGame(self,data_e):
 		reply.writeInt("HPID", self.GAMEOBJ.PersonaID)
 		reply.writeInt("HSLT", slot)
 		reply.writeEUnion() #END INIP
-			
+
+		pres = 1
 		reply.writeInt("PRES", pres)
+		pingsite = "ams"
+
 		reply.writeString("PSAS", pingsite)
 		reply.writeInt("QCAP", 14)
-		
+
 		reply.writeSStruct("RNFO")
 		reply.append("8f2a74050103") #CRIT
-		
+
 		reply.append("02")
-			
+
 		reply.append("0a636f6d6d616e64657200") #COMMANDER
 		reply.writeMap("CRIT")
 		reply.writeMapData("commanderRank", "stats_rank >= 10")
 		reply.writeBuildMap()
 		reply.writeInt("RCAP", 2)
 		reply.writeEUnion()
-		
+
 		reply.append("08736f6c6469657200") #SOLIDER
 		reply.writeInt("RCAP", serverOBJ.MaxPlayers)
 		reply.writeEUnion()
 		reply.writeEUnion()
-		
+
 		reply.writeInt("SEED", 11181)
-		
+
 		reply.writeSStruct("THST")
 		reply.writeInt("CSID", 0)
 		reply.writeInt("HPID", serverOBJ.PersonaID)
 		reply.writeInt("HSLT", 0)
 		reply.writeEUnion() #END INIP
-		
+
 		reply.writeIntArray("TIDS")
 		reply.writeIntArray_Int(65534)
 		reply.writeBuildIntArray()
-		
+
 		reply.writeString("UUID", serverOBJ.UUID)
 		reply.writeInt("VOIP", 0)
 		reply.writeString("VSTR","4900")
 		reply.append("e2eba30200")
-		reply.append("e339730200") 
+		reply.append("e339730200")
 		reply.writeEUnion() # END GAME
-		
+
 		reply.writeInt("LFPJ", 0)
-			
+
 		####
 		reply.writeSArray("PROS")
 		##Struct in array
@@ -339,24 +337,24 @@ def JoinGame(self,data_e):
 		reply.writeMap("PATT")
 		reply.writeMapData("premium", "false")
 		reply.writeBuildMap()
-			
+
 		reply.writeInt("PID ", self.GAMEOBJ.PersonaID)
-			
+
 		##PNET
 		reply.append("c2e9740602")
-			
+
 		reply.writeSStruct("VALU")
 		reply.writeSStruct("EXIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.EXTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.EXTPORT)
 		reply.writeEUnion() #END EXIP
-				
+
 		reply.writeSStruct("INIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.INTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.INTPORT)
 		reply.writeEUnion() #END INIP
 		reply.writeEUnion() #END VALU
-		
+
 		reply.writeString("ROLE", "soldier")
 		reply.writeInt("SID ", slot)
 		reply.writeInt("SLOT", slotType)
@@ -364,17 +362,17 @@ def JoinGame(self,data_e):
 		reply.writeInt("TIDX", 0)
 		reply.writeInt("TIME", 0)
 		reply.writeInt("UID ", self.GAMEOBJ.UserID)
-			
+
 		reply.append("ca58730600")
 		reply.writeSStruct("VALU")
 		reply.writeInt("DCTX", 3)
 		reply.writeEUnion() #END VALU
-			
+
 		pack1, pack2 = reply.build()
 		self.transport.getHandle().sendall(pack1.decode('Hex'))
 		self.transport.getHandle().sendall(pack2.decode('Hex'))
 		###############################################################
-		
+
 		reply = BlazeFuncs.BlazePacket("0004","0019","0000","2000")
 		reply.writeInt("GID ", GID)
 		reply.writeSStruct("PDAT")
@@ -384,26 +382,26 @@ def JoinGame(self,data_e):
 		reply.writeInt("GID ", GID)
 		reply.writeInt("LOC ", 1701729619)
 		reply.writeString("NAME", self.GAMEOBJ.Name)
-			
+
 		reply.writeMap("PATT")
 		reply.writeMapData("premium", "false")
 		reply.writeBuildMap()
-				
+
 		reply.writeInt("PID ", self.GAMEOBJ.PersonaID)
 		####
 		reply.append("c2e9740602")
-			
+
 		reply.writeSStruct("VALU")
 		reply.writeSStruct("EXIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.EXTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.EXTPORT)
 		reply.writeEUnion() #END EXIP
-						
+
 		reply.writeSStruct("INIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.INTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.INTPORT)
 		reply.writeEUnion() #END INIP
-						
+
 		reply.writeEUnion() #END VALU
 		##Struct array end
 
@@ -418,23 +416,23 @@ def JoinGame(self,data_e):
 		pack1, pack2 = reply.build()
 		serverOBJ.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
 		serverOBJ.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
-		
+
 		reply = BlazeFuncs.BlazePacket("7802","0001","0000","2000")
-			
+
 		reply.writeSStruct("DATA")
 		reply.append("8649320602")
-				
+
 		reply.writeSStruct("VALU")
 		reply.writeSStruct("EXIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.EXTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.EXTPORT)
 		reply.writeEUnion() #END EXIP
-				
+
 		reply.writeSStruct("INIP")
 		reply.writeInt("IP  ", self.GAMEOBJ.INTIP)
 		reply.writeInt("PORT", self.GAMEOBJ.INTPORT)
 		reply.writeEUnion() #END INIP
-					
+
 		reply.writeEUnion() #END VALU
 		reply.writeEUnion() #END DATA
 		##Struct array end
@@ -545,4 +543,4 @@ def ReciveComponent(self,func,data_e):
 	elif func == "0097":
 		print("[GMGR CLIENT] UN-RegisterDynamicDedicatedServerCreator")
 	else:
-		print("[GMGR CLIENT] ERROR! UNKNOWN FUNC "+func)
+		print(f"[GMGR CLIENT] ERROR! UNKNOWN FUNC {func}")
