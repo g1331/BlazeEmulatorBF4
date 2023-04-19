@@ -94,17 +94,17 @@ class BLAZEHUB(Protocol, TimeoutMixin):
 
 			if len(data_2) > 0:
 				self.dataReceived(data_2.decode('Hex'))
-		elif len(data_e) < dataLenghth and self.DATABUFF == "":
+		elif self.DATABUFF == "":
 			self.DATABUFF = data_e
-      
-		if allData == True:
+
+		if allData:
 			packet = BlazeFuncs.BlazeDecoder(data_1)
 			if packet.packetComponent == '0001':
 				Auth.ReciveComponent(self,packet.packetCommand,data_e)
 			elif packet.packetComponent == '0004':
 				Game.ReciveComponent(self,packet.packetCommand,data_e)
 			elif packet.packetComponent == '0007':
-				Stats.ReciveComponent(self,packet.packetCommand,data_e)    
+				Stats.ReciveComponent(self,packet.packetCommand,data_e)
 			elif packet.packetComponent == '0009':
 				Util.ReciveComponent(self,packet.packetCommand,data_e)
 			elif packet.packetComponent == '001c':
@@ -120,4 +120,6 @@ class BLAZEHUB(Protocol, TimeoutMixin):
 			elif packet.packetComponent == '000b':
 				Clubs.ReciveComponent(self,packet.packetCommand,data_e)
 			else:
-				print("[BLAZE SERVER] ERROR!! Unhandled Comonent("+packet.packetComponent+") and Function("+packet.packetCommand+")")
+				print(
+					f"[BLAZE SERVER] ERROR!! Unhandled Comonent({packet.packetComponent}) and Function({packet.packetCommand})"
+				)

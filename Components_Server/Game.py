@@ -16,20 +16,22 @@ def UpdateDataMysql(serverName, serverSlot, serverData, gameid):
 	db = sqlite3.connect(Globals.dbDatabase) 
 
 	cursor = db.cursor()
-	
+
 	seerverData_ = str(serverData)
 	serverDataOk = base64.b64encode(seerverData_)
-	
+
 	#print("Name: " + str(serverName) + " Slot: " + str(serverSlot) + " Data: " + str(serverData))
 	#cursor.execute("INSERT INTO `" + Globals.dbDatabase + "`.`serverslist` (`server_id`, `name`, `slot`, `data`) VALUES ('" + str(gameid) + "', '" + str(serverName) + "', '" + str(serverSlot) + "', '" + str(serverDataOk) + "');")
-	cursor.execute("INSERT INTO `serverslist` (`server_id`, `name`, `slot`, `data`) VALUES ('" + str(gameid) + "', '" + str(serverName) + "', '" + str(serverSlot) + "', '" + str(serverDataOk) + "');")
-	
-	
+	cursor.execute(
+		f"INSERT INTO `serverslist` (`server_id`, `name`, `slot`, `data`) VALUES ('{str(gameid)}', '{str(serverName)}', '{str(serverSlot)}', '{str(serverDataOk)}');"
+	)
+		
+
 	db.commit()
 	cursor.close()
 	db.close()
 
-	print("[SQLite] Server table created in database, name: " + str(serverName))
+	print(f"[SQLite] Server table created in database, name: {str(serverName)}")
 
 	
 def EditDataMysql(serverName, serverSlot, serverData, gameid):
@@ -38,19 +40,21 @@ def EditDataMysql(serverName, serverSlot, serverData, gameid):
 	db = sqlite3.connect(Globals.dbDatabase) 
 
 	cursor = db.cursor()
-	
+
 	seerverData_ = str(serverData)
 	serverDataOk = base64.b64encode(seerverData_)
 
 	#cursor.execute("UPDATE `" + Globals.dbDatabase + "`.`serverslist` SET `name` = '" + str(serverName) + "', `slot` = '" + str(serverSlot) + "', `data` = '" + serverDataOk + "' WHERE `serverslist`.`server_id` = '" + str(gameid) + "';")
-	cursor.execute("UPDATE `serverslist` SET `name` = '" + str(serverName) + "', `slot` = '" + str(serverSlot) + "', `data` = '" + serverDataOk + "' WHERE `serverslist`.`server_id` = '" + str(gameid) + "';")
-	
-	
+	cursor.execute(
+		f"UPDATE `serverslist` SET `name` = '{str(serverName)}', `slot` = '{str(serverSlot)}', `data` = '{serverDataOk}' WHERE `serverslist`.`server_id` = '{str(gameid)}';"
+	)
+		
+
 	db.commit()
 	cursor.close()
 	db.close()
 
-	print("[SQLite] Server table edited, name: " + str(serverName))
+	print(f"[SQLite] Server table edited, name: {str(serverName)}")
 	
 	
 def CreateGame(self,data_e):
@@ -282,15 +286,15 @@ def setGameSettings(self,data_e):
 
 def UpdateMeshConnection(self,data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
-	
+
 	TCG =  packet.getVar("TCG ")
-	
+
 	#PID = TCG[1]-1
 	PID = int(TCG[2])
-	
+
 	GID = self.GAMEOBJ.GameID
 	STAT = packet.getVar("STAT")
-	
+
 	reply = BlazeFuncs.BlazePacket("0004","001d",packet.packetID,"1000")
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
@@ -299,25 +303,27 @@ def UpdateMeshConnection(self,data_e):
 		for Client in Globals.Clients:
 			if Client.PersonaID == PID:
 				reply = BlazeFuncs.BlazePacket("7802","0001","0000","2000")
-			
+
 				reply.writeSStruct("DATA")
 				reply.append("8649320602")
-				
+
 				reply.writeSStruct("VALU")
 				reply.writeSStruct("EXIP")
 				reply.writeInt("IP  ", Client.EXTIP)
 				reply.writeInt("PORT", Client.EXTPORT)
 				reply.writeEUnion() #END EXIP
-				
+
 				reply.writeSStruct("INIP")
 				reply.writeInt("IP  ", Client.INTIP)
 				reply.writeInt("PORT", Client.INTPORT)
 				reply.writeEUnion() #END INIP
-					
+
 				reply.writeEUnion() #END VALU
 				#reply.writeEUnion() #END DATA
 				##Struct array end
-				reply.append("8b0cc00104616d73008f4e400101008f6872070092d870050000028180382b8280388d06a379a70000c33b2d040006bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01c6487403922c330000ba1d340004d62c33000000d61d3400808080808a58d6ccf40409010201" + reply.makeInt(Client.PersonaID) +"00")
+				reply.append(
+					f"8b0cc00104616d73008f4e400101008f6872070092d870050000028180382b8280388d06a379a70000c33b2d040006bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01bfbff8ff01c6487403922c330000ba1d340004d62c33000000d61d3400808080808a58d6ccf40409010201{reply.makeInt(Client.PersonaID)}00"
+				)
 				reply.writeInt("USID", Client.PersonaID)
 				pack1, pack2 = reply.build()
 				self.transport.getHandle().sendall(pack1.decode('Hex'))
@@ -330,7 +336,7 @@ def UpdateMeshConnection(self,data_e):
 				pack1, pack2 = reply.build()
 				self.transport.getHandle().sendall(pack1.decode('Hex'))
 				self.transport.getHandle().sendall(pack2.decode('Hex'))
-			
+
 				reply = BlazeFuncs.BlazePacket("0004","001e","0000","2000")
 				reply.writeInt("GID ", GID)
 				reply.writeInt("PID ", PID)
@@ -341,7 +347,7 @@ def UpdateMeshConnection(self,data_e):
 
 		leave = False
 		for Client in Globals.Clients:
-			if Client.PersonaID == int(PID):
+			if Client.PersonaID == PID:
 				if(Client.Type == "Client"):
 					self.GAMEOBJ.playerLeave(Client.PersonaID)
 					leave = True
@@ -351,7 +357,7 @@ def UpdateMeshConnection(self,data_e):
 				elif(Client.Type == "Spectator"):
 					self.GAMEOBJ.playerLeaveSpectator(Client.PersonaID)
 					leave = True
-				
+
 		if (leave):
 			#0 Disconnected
 			#1 Disconnect
@@ -466,31 +472,32 @@ def swapPlayersTeam(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	reply = BlazeFuncs.BlazePacket("0004","0070",packet.packetID,"1000")
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
-	
+
 	pid = packet.getVar("PID ")
 	role = packet.getVar("ROLE")
 	slot = packet.getVar("SLOT")
 	tidx = packet.getVar("TIDX")
-	
-	
+
+
 	reply = BlazeFuncs.BlazePacket("0004","0075","0000","2000")
 	reply.writeInt("GID ", self.GAMEOBJ.GameID)
 	reply.writeInt("PID ", pid)
 	reply.writeString("ROLE", role)
 	reply.writeInt("SLOT", 0)
 	reply.writeInt("TIDX", 0)
-	
+
 	pack1, pack2 = reply.build()
 	self.transport.getHandle().sendall(pack1.decode('Hex'))
 	self.transport.getHandle().sendall(pack2.decode('Hex'))
-	
+
 	for Client in Globals.Clients:
 		if Client.PersonaID == pid:
 			Client.Type = "Commander"
-			if(self.GAMEOBJ.playerLeave(pid)):
-				if(self.GAMEOBJ.playerJoinCommander(pid) != False):
-					Client.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
-					Client.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
+			if (self.GAMEOBJ.playerLeave(pid)) and (
+				self.GAMEOBJ.playerJoinCommander(pid) != False
+			):
+				Client.NetworkInt.getHandle().sendall(pack1.decode('Hex'))
+				Client.NetworkInt.getHandle().sendall(pack2.decode('Hex'))
 
 def ReciveComponent(self,func,data_e):
 	func = func.upper()
@@ -601,4 +608,4 @@ def ReciveComponent(self,func,data_e):
 	elif func == "0097":
 		print("[GMGR] UN-RegisterDynamicDedicatedServerCreator")
 	else:
-		print("[GMGR] ERROR! UNKNOWN FUNC "+func)
+		print(f"[GMGR] ERROR! UNKNOWN FUNC {func}")

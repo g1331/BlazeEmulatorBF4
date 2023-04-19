@@ -87,4 +87,4 @@ def ReciveComponent(self,func,data_e):
 		#print("[USRSEH] ResumeSession")
 		ResumeSession(self,data_e)
 	else:
-		print("[USRSEH] ERROR! UNKNOWN FUNC "+func)
+		print(f"[USRSEH] ERROR! UNKNOWN FUNC {func}")

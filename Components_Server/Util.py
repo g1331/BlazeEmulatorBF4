@@ -82,7 +82,7 @@ def PostAuth(self,data_e):
 	reply.writeInt("RPRT", 0)
 	reply.writeInt("TIID", 0)
 	reply.writeEUnion() #END PSS
-	
+
 	reply.writeSStruct("TELE")
 	reply.writeString("ADRS", "gostelemetry.blaze3.ea.com")
 	reply.writeBool("ANON", False)
@@ -100,13 +100,16 @@ def PostAuth(self,data_e):
 	reply.writeString("STIM", "Default")
 	reply.writeString("SVNM", "telemetry-3-common")
 	reply.writeEUnion() #END TELE
-	
+
 	reply.writeSStruct("TICK")
 	reply.writeString("ADRS", "10.10.78.150")
 	reply.writeInt("PORT", 8999)
-	reply.writeString("SKEY", str(self.GAMEOBJ.PersonaID)+",10.10.78.150:8999,battlefield-4-pc,10,50,50,50,50,0,0")
+	reply.writeString(
+		"SKEY",
+		f"{str(self.GAMEOBJ.PersonaID)},10.10.78.150:8999,battlefield-4-pc,10,50,50,50,50,0,0",
+	)
 	reply.writeEUnion() #END TICK
-	
+
 	reply.writeSStruct("UROP")
 	reply.writeInt("TMOP", 0)
 	reply.writeInt("UID ", self.GAMEOBJ.PersonaID)
@@ -183,7 +186,7 @@ def ReciveComponent(self,func,data_e):
 		PreAuth(self,data_e)
 	elif func == "0008":
 		print("[UTIL] PostAuth")
-		PostAuth(self,data_e)				
+		PostAuth(self,data_e)
 	elif func == "000A":
 		print("[UTIL] UserSettingsLoad")
 	elif func == "000B":
@@ -211,4 +214,4 @@ def ReciveComponent(self,func,data_e):
 	elif func == "001B":
 		print("[UTIL] SuspendUserPing")
 	else:
-		print("[UTIL] ERROR! UNKNOWN FUNC "+func)
+		print(f"[UTIL] ERROR! UNKNOWN FUNC {func}")

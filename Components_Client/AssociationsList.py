@@ -22,4 +22,4 @@ def ReciveComponent(self,func,data_e):
 	elif func == '00008':
 		print("[ASSLST] GetConfigLists")
 	else:
-		print("[ASSLST] ERROR! UNKNOWN FUNC "+func)
+		print(f"[ASSLST] ERROR! UNKNOWN FUNC {func}")

@@ -3,7 +3,7 @@ from threading import Timer
 
 from Utils import Globals
 
-x=datetime.today()
+x = datetime.now()
 y=x.replace(day=x.day, hour=0, minute=10, second=0, microsecond=0)
 delta_t=y-x
 secs=delta_t.seconds+1

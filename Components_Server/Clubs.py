@@ -11,4 +11,4 @@ def ReciveComponent(self,func,data_e):
 	if func == '0A8C':
 		print("[CLUBS] getClubMembershipForUsers")
 	else:
-		print("[CLUBS] ERROR! UNKNOWN FUNC "+func)
+		print(f"[CLUBS] ERROR! UNKNOWN FUNC {func}")

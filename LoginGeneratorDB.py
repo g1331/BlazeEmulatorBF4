@@ -3881,14 +3881,20 @@ ct_drSP2=0.00
 conn = sqlite3.connect(DATABASE_FILE)
 cursor = conn.cursor()
 
-email = (str(random.random()) + "@0xff.ru")
+email = f"{random.random()}@0xff.ru"
 username = raw_input('Username: ')
 password = raw_input('Password: ')
 
 encoded_base64 = base64.b64encode(password)
 encoded_md5 = hashlib.md5(password).hexdigest()
 
-print("Creating USERNAME :" +username +"\nPASSWORD(MD5): " + encoded_md5 + "\nAUTOEMAIL:" + email)
+print(
+    f"Creating USERNAME :{username}"
+    + "\nPASSWORD(MD5): "
+    + encoded_md5
+    + "\nAUTOEMAIL:"
+    + email
+)
 
 cursor.execute("""
 INSERT INTO users (username, email, password, battlepacks, consumables, items, usersettings, userstats)

@@ -141,4 +141,4 @@ def ReciveComponent(self,func,data_e):
 		print("[ACCTS] getUserSessionFromAuth")
 		getUserSessionFromAuth(self,data_e)
 	else:
-		print("[ACCTS] ERROR! UNKNOWN FUNC "+func)
+		print(f"[ACCTS] ERROR! UNKNOWN FUNC {func}")

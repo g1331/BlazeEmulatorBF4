@@ -124,25 +124,21 @@ def getStatsByGroupAsync(self, data_e):
 	packet = BlazeFuncs.BlazeDecoder(data_e)
 	user = packet.getVar('EID ')
 	vid = packet.getVar('VID ')
-	
+
 	userID = user[0]
-	
+
 	name = None
 	for Client in Globals.Clients:
 		if Client.PersonaID == userID:
 			name = Client.Name
 
-	#stats = open('Users/'+name+'/userstats.txt', 'r')
-	pStats = []
 	lines = loadMySql(name, "userstats").splitlines()
    	#lines = stats.readlines()
 	#stats.close()
 
-   	lines = [word.strip() for word in lines]
+	lines = [word.strip() for word in lines]
 
-   	for line in lines:
-   		pStats.append(line.split("="))
-
+	pStats = [line.split("=") for line in lines]
 	reply = BlazeFuncs.BlazePacket("0007","0010",packet.packetID,"1000")
 	self.transport.getHandle().sendall(reply.build().decode('Hex'))
 
@@ -179,7 +175,7 @@ def ReciveComponent(self,func,data_e):
 		print("[STATS] getStatsByGroupAsync")
 		getStatsByGroupAsync(self, data_e)
 	else:
-		print("[STATS] ERROR! UNKNOWN FUNC "+func)
+		print(f"[STATS] ERROR! UNKNOWN FUNC {func}")
 		
 def loadMySql(user, field):
 	#Query example: SELECT usersettings FROM `users` WHERE username = 'StoCazzo' 
